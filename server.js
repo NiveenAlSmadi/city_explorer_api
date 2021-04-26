@@ -15,20 +15,18 @@ server.get('/location',(req,res)=>{
   let locObject= new Location(locdata);
   res.send(locObject);
 });
+server.get('/weather', weatherHandler);
 
-let weatherArr=[];
-server.get('/weather',(req,res)=>{
-  const weatherData=require('./data/weather.json');
+function weatherHandler(req,res){
+  let getData = require('./data/weather.json');
+  let newArr=[];
+  getData.data.forEach(element => {
+    let WeathersData = new Weather(element);
+    newArr.push(WeathersData);
 
-  weatherData.data.forEach(element => {
-    let date =element.valid_date;
-    let description=element.weather.description;
-    let weather=new Weather(description,date);
-    weatherArr.push(weather);
   });
-  res.send(weatherArr);
-});
-
+  res.send(newArr);
+}
 
 function Location(locationData) {
   this.search_query = 'Lynwood';
@@ -37,11 +35,11 @@ function Location(locationData) {
   this.longitude = locationData[0].lon;
 }
 
-function Weather(forecast, time) {
-  this.forecast = forecast;
-  this.time = time;
+function Weather (weatherData)
+{
+  this.forecast = weatherData.weather.description;
+  this.time = new Date(weatherData.valid_date).toString().slice(0, 15);
 }
-
 
 server.get('*', (req, res) => {
   let errObject = {
