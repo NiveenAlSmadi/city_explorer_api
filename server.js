@@ -58,9 +58,9 @@ function weatherHandler(req,res){
     });
 }
 function parkHandler(req,res){
-  let cityName2 = req.query.search_query;
+  let city = req.query.search_query;
   let key2 = process.env.PARK_API_KEY;
-  let parkURL = `https://developer.nps.gov/api/v1/parks?q=${cityName2}&limit=5&api_key=${key2}`;
+  let parkURL = `https://developer.nps.gov/api/v1/parks?q=${city}&limit=5&api_key=${key2}`;
   superagent.get(parkURL)
     .then(parkData=>{
       let parkArr=parkData.body.data.map(item=>
