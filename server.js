@@ -19,7 +19,7 @@ server.get('/', (req, res) => {
 
 server.get('/location',locationHandler);
 server.get('/weather',weatherHandler);
-server.get('/park',parkHandler);
+server.get('/parks',parkHandler);
 server.get('*', statusHandler);
 
 
