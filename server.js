@@ -12,14 +12,24 @@ server.use(cors());
 const client = new pg.Client(process.env.DATABASE_URL);
 
 
+
 //main
-server.get('/', (req, res) => {
-  res.send('server me ');
-});
+server.get('/', mainHandler);
 server.get('/location',locationHandler);
 server.get('/weather',weatherHandler);
 server.get('/parks',parkHandler);
+server.get('/movies',movieHandler);
+server.get('/yelp',yelpHandler);
 server.get('*', statusHandler);
+
+
+
+//main
+
+
+function mainHandler(req,res){
+  res.send('server me ');
+}
 
 
 
@@ -64,6 +74,8 @@ function Location(cityName,locData){
   this.latitude = locData[0].lat;
   this.longitude = locData[0].lon;
 }
+
+
 
 
 
@@ -118,6 +130,74 @@ function Parks (parkData){
 }
 
 
+
+
+
+/// movies
+
+function movieHandler(req,res){
+  let city = req.query.search_query;
+  let key = process.env.MOVIE_API_KEY;
+  let URL = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${city}`;
+  superagent.get(URL)
+    .then(movData=>{
+      let Arr=movData.body.results.map(item=>
+        new Movies(item));
+      res.send(Arr);
+    })
+    .catch(error=>{
+      console.log(error);
+      res.send(error);
+    });
+}
+function Movies (movData){
+  this.title = movData.title;
+  this.overview =movData.overview;
+  this.average_votes = movData.vote_average;
+  this.total_votes = movData.total_votes;
+  this.image_url = `https://image.tmdb.org/t/p/w500${movData.poster_path}`;
+  this.popularity=movData.popularity;
+  this.released_on=movData.release_date;
+}
+
+
+
+
+
+//yelp
+
+function yelpHandler(req,res){
+
+  let city = req.query.search_query;
+  let key = process.env.YELP_API_KEY;
+  let page = req.query.page;
+  let Pages = 5;
+  let start = ((page - 1) * Pages + 1);
+  let Url = `https://api.yelp.com/v3/businesses/search?term=resturant&location=${city}&limit=${Pages}&offset=${start}`;
+  superagent.get(Url)
+    .set('Authorization', `Bearer ${key}`)
+    .then(yelpData=>{
+      let yelpArr=yelpData.body.businesses.map(item=>
+        new Yelps(item));
+      res.send(yelpArr);
+    })
+    .catch(error=>{
+      console.log(error);
+      res.send(error);
+    });
+}
+
+function Yelps (yelpData){
+  this.name = yelpData.name;
+  this.image_url =yelpData.image_url;
+  this.price ='$$  ';
+  this.rating = yelpData.rating;
+  this.url = yelpData.url;
+}
+
+
+
+
 ///status
 function statusHandler(req,res){
   let errObject = {
@@ -126,6 +206,7 @@ function statusHandler(req,res){
   };
   res.status(500).send(errObject);
 }
+
 
 client.connect()
   .then(() => {
